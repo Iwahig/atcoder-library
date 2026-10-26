@@ -1,0 +1,243 @@
+----XOR---
+and:&
+or:|
+xor:^
+
+-----尺取り法----
+while ・条件を満たさない間、進める
+         ・次に追加しても大丈夫なら、進める
+重要なのは、rをどこまで進めたいか、進める過程で条件の見方を工夫すること
+
+連続区間[l,r)を動かしながら、条件を満たす区間を効率よく探す
+rをみてrを進める
+が半開区間の基本
+for-whileの方法
+★区間和がk以上になる最短
+for l in range(n):
+  while r < n and total < k:
+    total += A[r]
+    r += 1
+  ans = min(r-l,ans)
+  total -= A[l]
+★区間和がk以下になる最大
+for l in range(n):
+  while r< n and total + A[r] <= k:  <-- sum([l,r)) + A[r] > kより
+    total += A[r]
+    r += 1
+  ans = max(ans,r-l)
+  total -= A[l]
+
+忘れない-
+if l == r:
+  r += 1
+をすること
+
+while-whileの方法
+while r < n:
+  total += A[r]
+  r += 1
+  
+  while 条件を満たしている:
+    ans = ....
+    total -= A[l]
+    l -= 1
+
+----C16 Flights-----
+愚直な解き方ー時間sにAを出発するとき、Aで時間sより前に到着するまで最大何回フライト可能か
+  --->(フライト回数1,到着時間1),(フライト回数2,到着時間2),,,で
+  ->Bは( maxフライト回数{到着時間<=s} +1,t)を保存
+到着時間順にソートすることで、sを見た時、すべての到着時間は絶対網羅されていることが保証される
+
+aからbにsに出発し、tにつく -> aでの時刻sでの最大値 + 1がbの時刻tでの最大値
+
+イベントで考える
+出発イベント aをsに出発、"""その時の最大フライト数を保存しておく"""
+到着イベント 時刻tでbに到着、保存されたやつで更新
+s,tの間にbに多くフライトされるかもしれないが、到着イベントが上書きだと台無しになる
+
+
+----C14 Commute Route　ダイクストラを二回する
+vは1 --- N　までの最短経路に含まれているか？
+1 - v,v - Nまでの最短距離の合計 = 1- Nまでの最短距離ならば、
+vは1- N までの最短距離に含まれている
+1からダイクストラ、nからダイクストラ
+で計算しよう
+
+----C12 Taro the novel writer 区間DP----
+a-bをつなぐ辺、列をk個に分ける
+dp[i][c] は1--iまでをc個に分けた時の利益
+dp[i][c] は max(dp[1][c-1] + cost[2][i],dp[2][c-1] + cost[3][i],,,,)
+1-iまでを1~ j , j+1~i に分ける、1 ~ jをc-1個に分ける時の最大値はもうわかってるので、j+1~iまでの利益をもらえばよし
+！！1 ~~ i　までの何とかをもつdp
+ -> 1 ~~ i　を　1 ~~ j , j+1 ~~ i　にわければよし
+
+------atcoder鉄則B68 ALGO Express-----
+最大流、最小カットの問題
+P[i] >= 0なてんはs -> iに容量P[i]の辺
+P[i] < 0な点は i -> tに容量-P[i]の辺
+a -> bに容量INFの辺
+ここで、s -> tへの最小カットは、実質最小損失であり、
+最初にP[i]>=0な駅をすべて選んだとき、利益MAX、そこから、a->bまでの辺があり、この時の最小流は、実質最小損失
+
+= ford fulkerson法 残余グラフ
+DFS() ->フローを流せる経路に、フローを流す(1経路のみ!)
+それを、何回も繰り返し、フローが流れなくなったらおしまい -> O(FE)
+意地悪な経路、フローが大きくなったりすると遅くなる
+
+=Dinic法
+DFS()が一経路にフローを流すことに変わりはないが
+DFSの探し方を工夫
+->最初にBFSして、距離のマップを作る
+DFSでは距離が1進むステップのみ採用
+また、DFSをする際、点の辺をどこまで見たかのiterリストを持つ、
+同じ距離での経路をもう一回DFSで探す、この時iterを使えば前のDFSの記憶を引き継ぐことが出来る
+フローが流れなくなったら、またBFSする
+,,,BFSでゴールまでたどり着けないなら、終了
+BFS,iterをつかって高速化->O(V*V*E)で終了
+
+https://tjkendev.github.io/procon-library/python/max_flow/dinic.html      <-おすすめ!
+
+-----木DP-------
+def dfs(v, p):
+    for nv in G[v]:
+        if nv == p:
+            continue
+
+        dfs(nv, v)
+
+        dp[v] = ...
+
+----while文経路復元-----
+while文でインデックスを扱う時は、while文の最初で、そのインデックスで処理をした後、インデックスを更新がよい
+
+i = 0
+while i<n:
+  //iで処理
+  i += 1
+
+------BIT treeについて----
+BITTreeのインデックス　S = {0,1}1{0}　は {0,1}0{0} ~~ {0,1}1{0}　までの合計をもつ
+つまり例えば1100は番号　1000 ~~ 1100　までの和をもつ
+ある数字110100までの和は
+SUM += 
+110100 = 110000 ~~ 110100
+110000 = 100000 ~~ 110000
+100000 = 000000 ~~ 100000
+0 = N/A
+
+で計算できる
+class BIT:
+  def __init__(self,n):
+    self.data = [0]*(n+1)
+  
+  def sum(self,i):
+    r = 0
+    while i > 0:
+      r += self.data[i]
+      i -= i&(-i)
+    return r
+  
+  def add(self,i,x):
+    while i <= n:
+      self.data[i] += x
+      i += i&(-i)
+
+-----二分探索bisect_left.right-------
+bisect_left
+xxxxooooo
+    ↑
+    oの一番左の位置
+
+bisect_right
+oooooxxxxx
+     ↑
+     xの一番左の位置
+
+-----Lazysegtree-------
+lazy この区間に+aされた、という情報を持っていればよい、子は持たないのでlogNで更新できる
+lazy = 0にするのは子供に更新してから、
+data + lazyするのはlazyに値を入れた時
+
+------SegmentTree------
+class SegmentTree:
+  def __init__(self,n):
+    self.size = 1
+    while self.size < n:
+      self.size *= 2
+    self.data = [0]*(2*self.size)
+  
+  def update(self,u,x):
+    u += self.size
+    self.data[u] = x
+    while u > 1:
+      u //= 2
+      self.data[u] = self.data[u*2]+self.data[u*2+1]
+  
+  def query(self,l,r,a,b,u):
+    if b <= l or r <= a:
+      return 0
+    if l<=a and b <= r:
+      return self.data[u]
+    
+    m = (a+b)//2
+    ar = self.query(l,r,a,m,u*2)
+    al = self.query(l,r,m,b,u*2+1)
+    
+    return ar+al
+  
+  def range_query(self,l,r):
+    return self.query(l,r,0,self.size,1)
+
+------DFS------
+visited = [False] * n
+
+def dfs(v):
+    visited[v] = True
+    for nv in G[v]:
+        if visited[nv]:
+            continue
+        dfs(nv)
+DFS,BFSともに頂点を見た時にDone[] =Trueする、
+DFSは関数の最初にすればよい、BFSはキューに入れる直前にすればよい
+
+-----ダイクストラ法-------
+while h:
+    distance, v = heapq.heappop(h)
+
+    if distance > D[v]:
+        continue
+
+    for cost, nv in G[v]:
+        if D[v] + cost < D[nv]:
+            D[nv] = D[v] + cost
+            heapq.heappush(h, (D[nv], nv))
+
+-----UnionFind------
+class UnionFind:
+  def __init__(self,n):
+    self.parent = [i for i in range(n)]
+    
+  def find(self,i):
+    if self.parent[i] == i:
+      return i
+    self.parent[i] = self.find(self.parent[i])
+    return self.parent[i]
+  
+  def union(self,i,j):
+    root_i = self.find(i)
+    root_j = self.find(j)
+    
+    if root_i == root_j:
+      return
+    
+    self.parent[root_i] = root_j
+  
+  def same(self,u,v):
+    return self.find(u) == self.find(v)
+-----クラスカル法----
+最小全域木は、連結にならないように最小の辺を追加してくことで求まる->unionFindで管理することによって解ける
+------ABC470 C----
+クエリ:A[i]に1足す、A1以上のやつから1引く
+クエリQ回あったとして、1以上の集合をまとめれば、足し算は高々Q回、引き算も高々Q回
+---転倒数と数列----
+数列Aを数列(1,2,3,4,,,N)にするために必要な[隣接要素の交換回数]の最小値=転倒数
