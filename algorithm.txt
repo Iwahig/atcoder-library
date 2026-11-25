@@ -1,3 +1,54 @@
+https://github.com/Iwahig/atcoder-library
+----2位まで記録するBFS-----
+頂点vに距離dで到達したとき、現在の1位(dist1[v)と2位と比べる
+1位更新:d < dist1[v]なら、1位を2位にずらし、dist1[v] = dとしてキューに入れる
+2位更新:dist1[v] < d < dist2[v]なら、dist2[v] = dとしてキューに入れる、(d = dist2[v]で入れる場合もあり)
+3回目の訪問は絶対3位にいなるため、各頂点訪問は最大2回までという制限がある
+->O(E+V)ではやい
+
+from collections import deque
+
+def bfs_second_shortest(n, graph, start):
+    INF = float('inf')
+    # dist1[v]: 1番目の最短距離, dist2[v]: 2番目の最短距離
+    dist1 = [INF] * n
+    dist2 = [INF] * n
+    
+    dist1[start] = 0
+    # キューには (現在の頂点, そこまでの距離) を入れる
+    queue = deque([(start, 0)])
+    
+    while queue:
+        v, d = queue.popleft()
+        
+        # すでに2位より悪い距離で取り出された場合はスキップ
+        if d > dist2[v]:
+            continue
+            
+        for nv in graph[v]:
+            nd = d + 1
+            if nd < dist1[nv]:
+                # 1位が更新されたら、元の1位を2位に降格
+                dist2[nv] = dist1[nv]
+                dist1[nv] = nd
+                queue.append((nv, nd))
+            elif dist1[nv] < nd < dist2[nv]:
+                # 1位と同じ距離は除外し、2位のみ更新
+                dist2[nv] = nd
+                queue.append((nv, nd))
+                
+    return dist1, dist2
+
+----座標圧縮----
+値からインデックスへ
+A = list()
+
+vals = sorted(set(A))
+
+comp = {v:i for i, v in enumerate(vals)]
+
+compressed = [comp[a] for a in A]
+
 ----桁DP----
 dp[i][j][k]
 i:何桁まで見てるか、
